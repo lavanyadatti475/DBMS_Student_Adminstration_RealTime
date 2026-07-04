@@ -5,6 +5,12 @@ import {
   Clock
 } from "lucide-react";
 
+function getFileUrl(filePath) {
+  if (!filePath) return '';
+  if (filePath.startsWith('http://') || filePath.startsWith('https://')) return filePath;
+  return `http://localhost:5000${filePath}`;
+}
+
 export default function DigiLockerSection({
   uploadedDocuments = []
 }) {
@@ -41,7 +47,7 @@ export default function DigiLockerSection({
               </div>
 
               <h3 className="mt-4 font-semibold text-lg">
-                {doc.documentType.replace(
+                {(doc.documentTitle || doc.documentType || '').replace(
                   /([A-Z])/g,
                   " $1"
                 )}
@@ -49,6 +55,14 @@ export default function DigiLockerSection({
 
               <p className="text-sm text-slate-500 mt-2">
                 {doc.fileName}
+              </p>
+
+              <p className="text-xs text-slate-400 mt-1 uppercase tracking-[0.2em]">
+                {doc.documentCategory || 'administration'}
+              </p>
+
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                Uploaded: {doc.uploadDate ? new Date(doc.uploadDate).toLocaleString() : 'N/A'}
               </p>
 
               <p className="mt-2 text-sm">
@@ -67,13 +81,13 @@ export default function DigiLockerSection({
               </p>
 
               <a
-                href={`http://localhost:5000${doc.filePath}`}
+                href={getFileUrl(doc.fileUrl || doc.filePath)}
                 target="_blank"
                 rel="noreferrer"
                 className="mt-4 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-white"
               >
                 <Download size={16} />
-                View
+                Open
               </a>
             </div>
           ))}

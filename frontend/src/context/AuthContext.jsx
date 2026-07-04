@@ -59,6 +59,11 @@ export function AuthProvider({ children }) {
     return userData;
   };
 
+  const register = async (payload) => {
+    const res = await api.post('/auth/register', payload);
+    return res.data;
+  };
+
   const logout = () => {
 
     setUser(null);
@@ -73,6 +78,7 @@ export function AuthProvider({ children }) {
         user,
         loading,
         login,
+        register,
         logout
       }}
     >

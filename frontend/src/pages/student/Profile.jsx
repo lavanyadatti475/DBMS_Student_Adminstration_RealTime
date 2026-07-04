@@ -120,6 +120,10 @@ export default function StudentProfile() {
               value: student?.email
             },
             {
+              label: "Roll Number",
+              value: student?.rollNumber
+            },
+            {
               label: "Mobile",
               value: student?.mobile
             },
@@ -150,6 +154,26 @@ export default function StudentProfile() {
             {
               label: "Address",
               value: student?.address
+            },
+            {
+              label: "Batch",
+              value: student?.batch?.name || student?.batch || "N/A"
+            },
+            {
+              label: "Supervisor",
+              value: student?.supervisor?.fullName || student?.supervisor || "N/A"
+            },
+            {
+              label: "Year",
+              value: student?.batch?.year || "N/A"
+            },
+            {
+              label: "Section",
+              value: student?.batch?.section || "N/A"
+            },
+            {
+              label: "Department",
+              value: student?.supervisor?.department || "N/A"
             },
             {
               label: "Guardian Name",

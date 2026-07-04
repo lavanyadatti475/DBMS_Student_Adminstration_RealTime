@@ -19,6 +19,7 @@ async function seed() {
   const student = await prisma.student.upsert({
     where: { email: 'student1@sams.edu' },
     update: {
+        rollNumber: 'RN260001',
       passwordHash: await bcrypt.hash('Student@1234', 12),
       role: 'student',
       emailVerified: true
@@ -33,6 +34,7 @@ async function seed() {
       profileCompleted: true,
       category: 'General'
     }
+        rollNumber: 'RN260001',
   });
 
   await prisma.admissionForm.upsert({

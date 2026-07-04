@@ -3,6 +3,16 @@ const prisma = require('../prismaClient');
 const { requireAuth, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
+
+function deriveBatchLabel(rollNumber) {
+  const match = String(rollNumber || '').match(/^(\d{2})/);
+  if (!match) {
+    return null;
+  }
+
+  const startYear = 2000 + Number(match[1]);
+  return `${startYear}-${startYear + 4}`;
+}
 router.get('/dashboard', requireAuth, requireRole('admin'), async (req, res, next) => {
   try {
 
@@ -148,10 +158,17 @@ router.get('/applications', requireAuth, requireRole('admin'), async (req, res, 
       where,
       skip: (Number(page) - 1) * Number(limit),
       take: Number(limit),
-      include: { admissionForm: true, admissionStatus: true }
+      include: { admissionForm: true, admissionStatus: true, batch: true, supervisor: true }
     });
 
-    res.json({ success: true, applications });
+    res.json({
+      success: true,
+      applications: applications.map((student) => ({
+        ...student,
+        batchLabel: student.batch?.name || deriveBatchLabel(student.rollNumber),
+        branchLabel: student.admissionForm?.branch || 'N/A'
+      }))
+    });
   } catch (error) {
     next(error);
   }
@@ -184,13 +201,22 @@ router.get('/applications/:id', requireAuth, requireRole('admin'), async (req, r
         academicDetails: true,
         admissionForm: true,
         uploadedDocuments: true,
-        admissionStatus: true
+        admissionStatus: true,
+        batch: true,
+        supervisor: true
       }
     });
     if (!student) {
       return res.status(404).json({ success: false, error: 'Student application not found' });
     }
-    res.json({ success: true, student });
+    res.json({
+      success: true,
+      student: {
+        ...student,
+        batchLabel: student.batch?.name || deriveBatchLabel(student.rollNumber),
+        branchLabel: student.admissionForm?.branch || 'N/A'
+      }
+    });
   } catch (error) {
     next(error);
   }
@@ -222,12 +248,19 @@ router.post('/applications', requireAuth, requireRole('admin'), async (req, res,
       return res.status(409).json({ success: false, error: 'Email already registered' });
     }
 
+    const rollNumber = req.body.rollNumber || `RN${new Date().getFullYear().toString().slice(-2)}${Math.floor(1000 + Math.random() * 9000)}`;
+    const rollNumberConflict = await prisma.student.findUnique({ where: { rollNumber } });
+    if (rollNumberConflict) {
+      return res.status(409).json({ success: false, error: 'Roll number already registered' });
+    }
+
     const { hashPassword } = require('../utils/hash');
     const hashed = await hashPassword(password);
 
     const student = await prisma.$transaction(async (tx) => {
       const newStudent = await tx.student.create({
         data: {
+          rollNumber,
           fullName,
           email,
           mobile,
@@ -294,7 +327,14 @@ router.post('/applications', requireAuth, requireRole('admin'), async (req, res,
       return newStudent;
     });
 
-    res.status(201).json({ success: true, student });
+    res.status(201).json({
+      success: true,
+      student: {
+        ...student,
+        batchLabel: deriveBatchLabel(student.rollNumber),
+        branchLabel: branch
+      }
+    });
   } catch (error) {
     next(error);
   }
@@ -342,6 +382,7 @@ router.put('/applications/:id', requireAuth, requireRole('admin'), async (req, r
       const updatedStudent = await tx.student.update({
         where: { id: studentId },
         data: {
+          rollNumber: req.body.rollNumber || studentExists.rollNumber,
           fullName,
           email,
           mobile,
@@ -431,7 +472,14 @@ router.put('/applications/:id', requireAuth, requireRole('admin'), async (req, r
       return updatedStudent;
     });
 
-    res.json({ success: true, student: updated });
+    res.json({
+      success: true,
+      student: {
+        ...updated,
+        batchLabel: deriveBatchLabel(updated.rollNumber),
+        branchLabel: branch || updated.admissionForm?.branch || 'N/A'
+      }
+    });
   } catch (error) {
     next(error);
   }
@@ -465,6 +513,12 @@ router.get(
     {
      mobile:{
       contains:q
+     }
+    },
+    {
+     rollNumber:{
+      contains:q,
+      mode:"insensitive"
      }
     }
    ]

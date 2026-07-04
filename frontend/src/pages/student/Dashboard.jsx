@@ -129,6 +129,10 @@ export default function StudentDashboard() {
               {stats?.email}
             </p>
 
+            <p className="text-sm font-semibold text-sky-700 mt-2">
+              Roll Number: {stats?.rollNumber || 'N/A'}
+            </p>
+
             <div className="grid md:grid-cols-2 gap-4 mt-4">
               <div>
                 <p className="text-sm text-slate-500">Course</p>
@@ -168,8 +172,35 @@ export default function StudentDashboard() {
                   {stats?.documentsUploaded || 0}
                 </p>
               </div>
+
+              <div>
+                <p className="text-sm text-slate-500">Batch</p>
+                <p className="font-semibold">{stats?.batch || 'N/A'}</p>
+              </div>
+
+              <div>
+                <p className="text-sm text-slate-500">Supervisor</p>
+                <p className="font-semibold">{stats?.supervisor || 'N/A'}</p>
+              </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div className="card-glass p-6 rounded-3xl border-slate-200/70 dark:border-slate-700/70">
+        <h2 className="text-xl font-semibold mb-4">Document Categories</h2>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {[
+            { label: 'Administration Documents', value: stats?.documentCategories?.administration?.length || 0 },
+            { label: 'Scholarship Documents', value: stats?.documentCategories?.scholarship?.length || 0 },
+            { label: 'Achievement Certificates', value: stats?.documentCategories?.achievement?.length || 0 },
+            { label: 'Participation Certificates', value: stats?.documentCategories?.participation?.length || 0 }
+          ].map((item) => (
+            <div key={item.label} className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900">
+              <p className="text-sm text-slate-500">{item.label}</p>
+              <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{item.value}</p>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -294,12 +325,7 @@ export default function StudentDashboard() {
         </div>
       </section>
 
-      {/* DigiLocker */}
-      <DigiLockerSection
-        uploadedDocuments={
-          stats?.uploadedDocuments || []
-        }
-      />
+      <DigiLockerSection uploadedDocuments={stats?.uploadedDocuments || []} />
     </div>
   );
 }
