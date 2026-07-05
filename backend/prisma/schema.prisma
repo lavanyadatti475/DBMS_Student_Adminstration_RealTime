@@ -31,6 +31,8 @@ model Student {
   guardianOccupation   String?
   guardianIncome       String?
   emergencyContact     String?
+  batchId              Int?
+  supervisorId         Int?
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
@@ -41,6 +43,31 @@ model Student {
   notifications     Notification[]
   scholarships      StudentScholarship[]
   achievements Achievement[]
+  batch            Batch?      @relation(fields: [batchId], references: [id])
+  supervisor       Supervisor? @relation(fields: [supervisorId], references: [id])
+}
+
+model Batch {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  year        String?
+  section     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  students    Student[]
+}
+
+model Supervisor {
+  id          Int      @id @default(autoincrement())
+  fullName    String
+  email       String   @unique
+  mobile      String?
+  department  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  students    Student[]
 }
 
 model AcademicDetail {
@@ -85,8 +112,15 @@ model UploadedDocument {
   id                 Int      @id @default(autoincrement())
   studentId          Int
   documentType       String
+  documentCategory   String   @default("administration")
+  documentTitle      String?
   fileName           String
   filePath           String
+  fileUrl            String?
+  fileType           String?
+  fileSize           Int?
+  uploadedBy         String?
+  uploadDate         DateTime @default(now())
   verificationStatus String   @default("pending")
   verificationNotes  String?
   createdAt          DateTime @default(now())
