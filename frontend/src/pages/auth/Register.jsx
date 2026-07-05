@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { UserPlus, Mail, Phone, Lock, AlertCircle, CheckCircle } from 'lucide-react';
 
 export default function Register() {
-  const [form, setForm] = useState({ fullName: '', email: '', mobile: '', rollNumber: '', password: '', confirmPassword: '' });
+  const [form, setForm] = useState({ fullName: '', email: '', mobile: '',rollNumber:'', password: '', confirmPassword: '' });
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
   const [validationErrors, setValidationErrors] = useState([]);
@@ -12,27 +12,59 @@ export default function Register() {
   const navigate = useNavigate();
 
   const handleSubmit = async (event) => {
-    event.preventDefault();
-    setError(null);
-    setValidationErrors([]);
-    setMessage(null);
-    
-    try {
-      const response = await register(form);
-      setMessage(response.message);
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000);
-    } catch (err) {
-      if (err.errors && Array.isArray(err.errors)) {
-        const errorMessages = err.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
-        setValidationErrors(err.errors);
-        setError(errorMessages);
-      } else {
-        setError(err.error || 'Registration failed. Please try again.');
-      }
+
+  event.preventDefault();
+
+  setError(null);
+  setValidationErrors([]);
+  setMessage(null);
+
+  console.log("FORM DATA:");
+  console.log(form);
+
+  try {
+
+    console.log("Calling register...");
+
+    const response = await register(form);
+
+    console.log("SUCCESS:");
+    console.log(response);
+
+    setMessage(response.message);
+
+    setTimeout(() => {
+      navigate('/login');
+    }, 2000);
+
+  } catch (err) {
+
+    console.log("REGISTER ERROR:");
+    console.log(err);
+
+    console.log("RESPONSE:");
+    console.log(err.response);
+
+    if (err.response) {
+      console.log("SERVER RESPONSE:");
+      console.log(err.response.data);
     }
-  };
+
+    setError(
+
+      err.response?.data?.error ||
+
+      JSON.stringify(err.response?.data) ||
+
+      err.message ||
+
+      "Registration failed"
+
+    );
+
+  }
+
+};
 
   return (
     <div
@@ -84,6 +116,24 @@ p-6
               <input value={form.mobile} onChange={(e) => setForm({ ...form, mobile: e.target.value })} required className="w-full bg-transparent outline-none text-slate-900 dark:text-slate-100" placeholder="06301594486" />
             </div>
           </label>
+
+          <label className="block">
+  <span>Roll Number</span>
+
+  <input
+     value={form.rollNumber}
+     onChange={(e)=>
+        setForm({
+          ...form,
+          rollNumber:e.target.value
+        })
+     }
+     placeholder="23VV1A1211"
+  />
+
+</label>
+
+
 
           <div className="grid gap-5 md:grid-cols-2">
             <label className="block">

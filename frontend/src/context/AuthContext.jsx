@@ -59,10 +59,16 @@ export function AuthProvider({ children }) {
     return userData;
   };
 
-  const register = async (payload) => {
-    const res = await api.post('/auth/register', payload);
-    return res.data;
-  };
+  const register = async (data) => {
+
+  const res = await api.post(
+    "/auth/register",
+    data
+  );
+
+  return res.data;
+
+};
 
   const logout = () => {
 

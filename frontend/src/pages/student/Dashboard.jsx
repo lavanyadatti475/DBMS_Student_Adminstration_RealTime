@@ -125,6 +125,26 @@ export default function StudentDashboard() {
               {stats?.fullName || 'Student'}
             </h2>
 
+              {stats?.rollNumber && (
+    <span
+      className="
+      px-4
+      py-1
+      rounded-full
+      bg-sky-100
+      text-sky-700
+      text-sm
+      font-semibold
+      border
+      border-sky-300
+      dark:bg-sky-900/30
+      dark:text-sky-300
+      dark:border-sky-700
+      "
+    >
+      {stats.rollNumber}
+    </span>
+)}
             <p className="text-slate-500 mt-1">
               {stats?.email}
             </p>

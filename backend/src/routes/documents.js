@@ -1,5 +1,6 @@
+const supabase = require("../supabase");
+const multer = require("multer");
 const express = require('express');
-const multer = require('multer');
 const path = require('path');
 const { requireAuth, requireRole } = require('../middleware/auth');
 const prisma = require('../prismaClient');
@@ -71,26 +72,25 @@ function resolveFileResponse(document) {
 }
 
 /* ---------------- MULTER CONFIG ---------------- */
-
 const storage = multer.diskStorage({
-destination: (req, file, cb) => {
-cb(
-null,
-process.env.UPLOAD_DIR ||
-path.join(__dirname, '../../uploads')
-);
-},
+  destination: (req, file, cb) => {
+    cb(
+      null,
+      process.env.UPLOAD_DIR ||
+      path.join(__dirname, "../../uploads")
+    );
+  },
 
-filename: (req, file, cb) => {
-cb(
-null,
-`${Date.now()}-${file.originalname.replace(/\s+/g, '-')}`
-);
-}
+  filename: (req, file, cb) => {
+    cb(
+      null,
+      `${Date.now()}-${file.originalname.replace(/\s+/g, "-")}`
+    );
+  }
 });
 
 const upload = multer({
-storage,
+storage: multer.memoryStorage(),
 
 limits: {
 fileSize: 8 * 1024 * 1024
@@ -112,122 +112,114 @@ cb(null, allowed.includes(file.mimetype));
 });
 
 /* ---------------- UPLOAD DOCUMENTS ---------------- */
-
 router.post(
-'/upload',
+"/upload",
 requireAuth,
-upload.fields([
-{ name: 'photograph' },
-{ name: 'aadhaar' },
-{ name: 'sscMemo' },
-{ name: 'intermediateMemo' },
-{ name: 'transferCertificate' },
-{ name: 'incomeCertificate' },
-{ name: 'casteCertificate' },
-{ name: 'DOBCertificate' },
-{ name: 'rankCard' },
-{ name: 'signature' },
-{ name: 'sportsCertificate' },
-{ name: 'academicCertificate' },
-{ name: 'participationCertificate' },
-{ name: 'bonafideCertificate' },
-{ name: 'studentIdCard' },
-{ name: 'addressProof' },
-{ name: 'parentGuardianIdProof' },
-{ name: 'residenceCertificate' },
-{ name: 'migrationCertificate' },
-{ name: 'admissionLetter' },
-{ name: 'feeReceipt' },
-{ name: 'bankPassbook' },
-{ name: 'studentBankAccountDetails' },
-{ name: 'scholarshipApplicationForm' },
-{ name: 'academicMarksMemo' },
-{ name: 'previousScholarshipApprovalLetter' },
-{ name: 'passportSizePhoto' },
-{ name: 'parentIncomeProof' },
-{ name: 'technicalCertificate' }
-]),
-async (req, res, next) => {
-try {
-  if (!req.files || Object.keys(req.files).length === 0) {
-    return res.status(400).json({
-      success: false,
-      error: 'No files uploaded'
-    });
-  }
+upload.array("documents",20),
 
-  const uploads = Object.entries(req.files).flatMap(
-    ([documentType, items]) =>
-      items.map((item) => ({
-        documentType,
-        documentCategory: inferCategory(documentType, req.body?.documentCategory),
-        documentTitle: req.body?.documentTitle || documentType,
-        fileName: item.filename,
-        filePath: buildDocumentUrl(item.filename),
-        fileUrl: buildDocumentUrl(item.filename),
-        fileType: item.mimetype,
-        fileSize: item.size,
-        uploadedBy: req.user?.email || String(req.user?.id || ''),
-        isMandatory: Boolean(req.body?.isMandatory)
-      }))
-  );
+async(req,res,next)=>{
 
-  const records = await Promise.all(
-    uploads.map((record) =>
-      prisma.uploadedDocument.create({
-        data: {
-          ...record,
-          studentId: req.user.id
-        }
-      })
-    )
-  );
+try{
 
-  await prisma.admissionStatus.upsert({
-    where: {
-      studentId: req.user.id
-    },
+if(!req.files || req.files.length===0){
 
-    update: {
-      documentStatus: 'uploaded'
-    },
+return res.status(400).json({
+success:false,
+error:"No files uploaded"
+})
 
-    create: {
-      studentId: req.user.id,
-      applicationStatus: 'submitted',
-      documentStatus: 'uploaded'
-    }
-  });
-
-  await prisma.notification.create({
-    data: {
-      studentId: req.user.id,
-      title: 'Document Uploaded',
-      message:
-        'Your documents were uploaded successfully.'
-    }
-  });
-
-  await prisma.activityLog.create({
-    data: {
-      action: 'Document Uploaded',
-      performedBy: req.user.id,
-      studentId: req.user.id
-    }
-  });
-
-  res.json({
-    success: true,
-    documents: records.map(resolveFileResponse)
-  });
-
-} catch (error) {
-  next(error);
 }
 
+const uploads = [];
+for (const item of req.files) {
+
+const documentType = Array.isArray(req.body.category)
+  ? req.body.category[0]
+  : req.body.category || "General";
+
+const fileName =
+`${Date.now()}-${item.originalname}`;
+
+const {data,error} =
+await supabase.storage
+.from("documents")
+.upload(
+
+`${documentType}/${fileName}`,
+
+item.buffer,
+
+{
+contentType:item.mimetype
 }
 );
 
+if(error)
+throw error
+
+
+const {data:publicUrl} =
+supabase.storage
+.from("documents")
+.getPublicUrl(data.path)
+
+
+uploads.push({
+
+documentType,
+
+fileName,
+
+filePath:
+publicUrl.publicUrl
+
+})
+
+}
+
+
+const records =
+await Promise.all(
+
+uploads.map(doc=>
+
+prisma.uploadedDocument.create({
+
+data:{
+
+...doc,
+
+studentId:req.user.id
+
+}
+
+})
+
+)
+
+)
+
+res.json({
+
+success:true,
+
+documents:records
+
+});
+
+}
+
+catch(error){
+
+console.log(error)
+
+next(error)
+
+}
+
+}
+
+)
 /* ---------------- MY DOCUMENTS ---------------- */
 
 router.get(
@@ -241,7 +233,7 @@ try {
         studentId: req.user.id
       },
       orderBy: {
-        uploadDate: 'desc'
+        id: "desc"
       }
     });
 

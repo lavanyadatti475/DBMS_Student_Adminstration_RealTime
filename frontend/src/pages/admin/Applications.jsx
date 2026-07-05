@@ -84,8 +84,9 @@ function getStatusBadge(status) {
 export default function ApplicationsPage() {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [filters, setFilters] = useState({ search: '', branch: '', status: '', category: '' });
-  const [pendingFilters, setPendingFilters] = useState({ search: '', branch: '', status: '', category: '' });
+  const [filters, setFilters] = useState({ search: '', branch: '', batch: ''});
+  
+  // Modals state
   const [viewingApp, setViewingApp] = useState(null);
   const [editingApp, setEditingApp] = useState(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -95,8 +96,22 @@ export default function ApplicationsPage() {
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
   const [submitting, setSubmitting] = useState(false);
-
-  const fetchApplications = async (params = filters) => {
+  function getInitialFormState() {
+    return {
+      rollNumber:'',fullName: '', email: '', mobile: '', password: '',
+      dob: '', gender: 'Male', bloodGroup: '', nationality: 'Indian', religion: '', category: 'General', address: '',
+      guardianName: '', guardianOccupation: '', guardianIncome: '', emergencyContact: '',
+      
+      secondarySchool: '', secondaryBoard: '', secondaryPercentage: '', secondaryYear: '',
+      intermediateCollege: '', intermediateBoard: '', intermediatePercentage: '', intermediateYear: '',
+      examName: 'JEE Main', examRank: '', examScore: '', examYear: new Date().getFullYear(),
+      
+      course: 'B.Tech', branch: 'Computer Science', admissionCategory: 'Merit',
+      hostelRequired: false, scholarshipRequired: false, previousInstitution: '',
+      applicationStatus: 'submitted'
+    };
+  }
+  const fetchApplications = () => {
     setLoading(true);
     setFormError('');
     try {
@@ -143,6 +158,8 @@ export default function ApplicationsPage() {
       const res = await api.get(`/admin/applications/${appId}`);
       const student = res.data.student;
       setForm({
+        rollNumber:
+        student.rollNumber || '',
         id: student.id,
         rollNumber: student.rollNumber || '',
         fullName: student.fullName || '',
@@ -334,17 +351,163 @@ export default function ApplicationsPage() {
               Apply
             </button>
           </div>
+          <select
+            value={filters.branch}
+            onChange={(e) => setFilters({ ...filters, branch: e.target.value })}
+            className="rounded-3xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 outline-none shadow-sm transition focus:border-brand-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+          >
+            <option value="">All Branches</option>
+            <option value="Computer Science">Computer Science</option>
+            <option value="Information Technology">Information Technology</option>
+            <option value="ECE">Electronics</option>
+            <option value="Mec">Mechanical</option>
+            <option value="EEE">EEE</option>
+            <option value="MET">Meturagy</option>
+            <option value="Civil">Civil</option>
+          </select>
+          {/* Batch */}
+  <select
+    value={filters.batch || ""}
+    onChange={(e) =>
+      setFilters({ ...filters, batch: e.target.value })
+    }
+    className="px-4 py-2 rounded-2xl border border-slate-300 bg-white"
+  >
+    <option value="">All Batches</option>
+    <option value="2022">2022</option>
+    <option value="2023">2023</option>
+    <option value="2024">2024</option>
+    <option value="2025">2025</option>
+    <option value="2026">2026</option>
+  </select>
+        </div>
+        <div className="mt-5 flex items-center justify-end gap-3 border-t border-slate-100 pt-4 dark:border-slate-800">
+          <button 
+            onClick={() => setFilters({ search: '', branch: '', batch: '' })} 
+            className="rounded-3xl border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            Clear Filters
+          </button>
+          <button 
+            onClick={fetchApplications} 
+            className="rounded-3xl bg-slate-900 px-5 py-2 text-xs font-semibold text-white transition hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700"
+          >
+            Apply
+          </button>
         </div>
 
         {formError && <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">{formError}</div>}
         {formSuccess && <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">{formSuccess}</div>}
 
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white/90 shadow-xl backdrop-blur-xl dark:border-slate-700 dark:bg-slate-900/85">
-          <div className="overflow-x-auto">
-            {loading ? (
-              <div className="flex h-64 flex-col items-center justify-center gap-3">
-                <Loader2 className="h-8 w-8 animate-spin text-brand-600" />
-                <span className="text-sm text-slate-500">Loading applications...</span>
+uppercase
+tracking-wide">
+                <tr>
+                  <th className="px-6 py-4">Roll Number</th>
+                  <th className="px-6 py-4 font-semibold">Student</th>
+                  <th className="px-6 py-4 font-semibold">Course & Branch</th>
+                  <th className="px-6 py-4 font-semibold">Status</th>
+                  <th className="px-6 py-4 font-semibold">Category</th>
+                  <th className="px-6 py-4 font-semibold">Submitted</th>
+                  <th className="px-6 py-4 font-semibold text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 bg-white/50 dark:divide-slate-700 dark:bg-slate-950/50">
+                {applications.map((student) => (
+                  <tr key={student.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-colors">
+                    <td className="px-6 py-4">
+                      <td className="px-6 py-4">
+
+<button
+
+onClick={()=>
+
+handleOpenView(student.id)
+
+}
+
+className="
+
+text-blue-600
+font-semibold
+
+hover:underline
+
+"
+
+>
+
+{student.rollNumber || '--'}
+
+</button>
+
+</td>
+                      <div className="font-semibold text-slate-900 dark:text-slate-100">{student.fullName}</div>
+                      <div className="text-xs text-slate-500">{student.email}</div>
+                      <div className="text-xs text-slate-400">{student.mobile}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      {student.admissionForm ? (
+                        <>
+                          <div className="font-medium text-slate-800 dark:text-slate-200">{student.admissionForm.course}</div>
+                          <div className="text-xs text-slate-500">{student.admissionForm.branch}</div>
+                        </>
+                      ) : (
+                        <span className="text-xs text-slate-400 italic">Not started</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      {getStatusBadge(student.admissionStatus?.applicationStatus)}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                        {student.category || '—'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-xs text-slate-500">
+                      {student.admissionForm?.submittedAt 
+                        ? new Date(student.admissionForm.submittedAt).toLocaleDateString()
+                        : '—'}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button 
+                          onClick={() => handleOpenView(student.id)}
+                          title="View Details"
+                          className="rounded-lg p-2 text-slate-600 transition hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+                        >
+                          <Eye size={16} />
+                        </button>
+                        <button 
+                          onClick={() => handleOpenEdit(student.id)}
+                          title="Edit"
+                          className="rounded-lg p-2 text-blue-600 transition hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/30"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button 
+                          onClick={() => setDeletingAppId(student.id)}
+                          title="Delete"
+                          className="rounded-lg p-2 text-rose-600 transition hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/30"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+      {/* VIEW DETAILS MODAL */}
+      {viewingApp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-sm">
+          <div className="card-glass w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl p-6 shadow-2xl animate-in fade-in duration-200">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4 dark:border-slate-800">
+              <div>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">Application Details</h3>
+                <p className="text-xs text-slate-500">System ID: #{viewingApp.id}</p>
               </div>
             ) : applications.length === 0 ? (
               <div className="flex h-64 flex-col items-center justify-center gap-2">
@@ -352,71 +515,68 @@ export default function ApplicationsPage() {
                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300">No applications found</span>
                 <span className="text-xs text-slate-400">Try adjusting your filters or search terms.</span>
               </div>
-            ) : (
-              <table className="min-w-full divide-y divide-slate-200 text-left text-sm dark:divide-slate-700">
-                <thead className="bg-gradient-to-r from-blue-100 via-indigo-100 to-purple-100 uppercase tracking-wide text-slate-800">
-                  <tr>
-                    <th className="px-6 py-4 font-semibold">Student</th>
-                    <th className="px-6 py-4 font-semibold">Roll Number</th>
-                    <th className="px-6 py-4 font-semibold">Batch</th>
-                    <th className="px-6 py-4 font-semibold">Branch</th>
-                    <th className="px-6 py-4 font-semibold">Status</th>
-                    <th className="px-6 py-4 font-semibold">Category</th>
-                    <th className="px-6 py-4 font-semibold">Submitted</th>
-                    <th className="px-6 py-4 font-semibold text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200 bg-white/50 dark:divide-slate-700 dark:bg-slate-950/50">
-                  {applications.map((student) => (
-                    <tr key={student.id} className="transition-colors hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
-                      <td className="px-6 py-4">
-                        <div className="font-semibold text-slate-900 dark:text-slate-100">{student.fullName}</div>
-                        <div className="text-xs text-slate-500">{student.email}</div>
-                        <div className="text-xs text-slate-400">{student.mobile}</div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="font-medium text-slate-800 dark:text-slate-200">{student.rollNumber || '—'}</div>
-                      </td>
-                      <td className="px-6 py-4 text-slate-700 dark:text-slate-200">{student.batchLabel || student.batch?.name || deriveBatchLabel(student.rollNumber)}</td>
-                      <td className="px-6 py-4 text-slate-700 dark:text-slate-200">{student.branchLabel || student.admissionForm?.branch || '—'}</td>
-                      <td className="px-6 py-4">{getStatusBadge(student.admissionStatus?.applicationStatus)}</td>
-                      <td className="px-6 py-4">
-                        <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-700 dark:bg-slate-800 dark:text-slate-300">{student.category || '—'}</span>
-                      </td>
-                      <td className="px-6 py-4 text-xs text-slate-500">
-                        {student.admissionForm?.submittedAt ? new Date(student.admissionForm.submittedAt).toLocaleDateString() : '—'}
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button onClick={() => handleOpenView(student.id)} title="View Details" className="rounded-lg p-2 text-slate-600 transition hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800">
-                            <Eye size={16} />
-                          </button>
-                          <button onClick={() => handleOpenEdit(student.id)} title="Edit" className="rounded-lg p-2 text-blue-600 transition hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/30">
-                            <Edit2 size={16} />
-                          </button>
-                          <button onClick={() => setDeletingAppId(student.id)} title="Delete" className="rounded-lg p-2 text-rose-600 transition hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/30">
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </div>
+            </div>
+            <div className="mt-6 grid gap-6 md:grid-cols-2">
+              {/* Profile Card */}
+              <div className="space-y-4">
+                <h4 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-brand-600">
+                  <User size={16} /> Personal Information
+                </h4>
+                <div className="grid grid-cols-2 gap-4 rounded-2xl border border-slate-150 p-4 dark:border-slate-800 text-xs">
+                  <div>
 
-        {viewingApp && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm">
-            <div className="card-glass max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-3xl p-6 shadow-2xl animate-in fade-in duration-200">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4 dark:border-slate-800">
-                <div>
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">Application Details</h3>
-                  <p className="text-xs text-slate-500">System ID: #{viewingApp.id}</p>
-                  <p className="text-xs text-slate-500">Roll Number: {viewingApp.rollNumber || 'N/A'}</p>
-                  <p className="text-xs text-slate-500">Batch: {viewingApp.batchLabel || viewingApp.batch?.name || deriveBatchLabel(viewingApp.rollNumber)}</p>
-                  <p className="text-xs text-slate-500">Branch: {viewingApp.branchLabel || viewingApp.admissionForm?.branch || 'N/A'}</p>
+<p className="text-slate-400">
+
+Roll Number
+
+</p>
+
+<p
+className="
+font-semibold
+text-slate-800">
+
+{viewingApp.rollNumber || '--'}
+
+</p>
+
+</div>
+                  <div>
+                    <p className="text-slate-400">Full Name</p>
+                    <p className="font-semibold text-slate-800 dark:text-slate-200">{viewingApp.fullName}</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-400">Email Address</p>
+                    <p className="font-semibold text-slate-800 dark:text-slate-200">{viewingApp.email}</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-400">Mobile</p>
+                    <p className="font-semibold text-slate-800 dark:text-slate-200">{viewingApp.mobile}</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-400">Date of Birth</p>
+                    <p className="font-semibold text-slate-800 dark:text-slate-200">{viewingApp.dob || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-400">Gender</p>
+                    <p className="font-semibold text-slate-800 dark:text-slate-200">{viewingApp.gender || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-400">Blood Group</p>
+                    <p className="font-semibold text-slate-800 dark:text-slate-200">{viewingApp.bloodGroup || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-400">Category</p>
+                    <p className="font-semibold text-slate-800 dark:text-slate-200">{viewingApp.category || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-400">Nationality</p>
+                    <p className="font-semibold text-slate-800 dark:text-slate-200">{viewingApp.nationality || '—'}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-slate-400">Residential Address</p>
+                    <p className="font-semibold text-slate-800 dark:text-slate-200">{viewingApp.address || '—'}</p>
+                  </div>
                 </div>
                 <button onClick={() => setViewingApp(null)} className="rounded-full p-2 transition hover:bg-slate-100 dark:hover:bg-slate-800">
                   <X size={20} />
@@ -534,10 +694,88 @@ export default function ApplicationsPage() {
                   </button>
                 ))}
               </div>
+            )}
+            <form onSubmit={handleSave} className="mt-6 space-y-6">
+              {/* Tab 1: Personal Info */}
+              {activeTab === 'personal' && (
+                <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                  <label>
 
-              <form onSubmit={handleSave} className="mt-6 space-y-6">
-                {activeTab === 'personal' && (
-                  <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+<span
+className="
+text-xs
+font-bold
+uppercase
+tracking-wider
+text-slate-500"
+>
+
+Roll Number
+
+</span>
+
+<input
+
+value={form.rollNumber}
+
+onChange={(e)=>
+
+setForm({
+
+...form,
+
+rollNumber:e.target.value
+
+})
+
+}
+
+className="
+mt-2
+w-full
+rounded-2xl
+border
+border-slate-200
+px-4
+py-3"
+
+placeholder="2022CSE001"
+
+/>
+
+</label>
+                  <label className="block">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Full Name *</span>
+                    <input 
+                      value={form.fullName} 
+                      onChange={(e) => setForm({ ...form, fullName: e.target.value })} 
+                      required 
+                      className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-brand-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" 
+                      placeholder="e.g. Tejaswini Yerra"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Email Address *</span>
+                    <input 
+                      type="email"
+                      value={form.email} 
+                      onChange={(e) => setForm({ ...form, email: e.target.value })} 
+                      required 
+                      className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-brand-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" 
+                      placeholder="e.g. name@domain.com"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Mobile Number *</span>
+                    <input 
+                      value={form.mobile} 
+                      onChange={(e) => setForm({ ...form, mobile: e.target.value })} 
+                      required 
+                      className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-brand-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" 
+                      placeholder="e.g. 06301594486"
+                    />
+                  </label>
+                  {isCreateOpen && (
                     <label className="block">
                       <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Roll Number *</span>
                       <input value={form.rollNumber} onChange={(e) => setForm({ ...form, rollNumber: e.target.value })} required className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-brand-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" placeholder="RN260001" />

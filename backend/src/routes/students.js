@@ -8,7 +8,7 @@ const router = express.Router();
 
 const profileSchema = z.object({
 fullName: z.string().min(3).optional(),
-rollNumber: z.string().min(3).optional(),
+rollNumber: z.string().optional(),
 dob: z.string().optional(),
 gender: z.string().optional(),
 bloodGroup: z.string().optional(),
@@ -197,6 +197,7 @@ const completion = Math.min(
 res.json({
   success: true,
   data: {
+
     fullName: student.fullName,
     rollNumber: student.rollNumber,
     email: student.email,
