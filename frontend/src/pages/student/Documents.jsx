@@ -5,21 +5,45 @@ import { UploadCloud } from "lucide-react";
 export default function Documents() {
   const [files, setFiles] = useState({});
   const [status, setStatus] = useState("");
+  const [activeTab, setActiveTab] = useState("administration");
 
-  const documentFields = [
-    "photograph",
-    "aadhaar",
-    "sscMemo",
-    "intermediateMemo",
-    "transferCertificate",
-    "incomeCertificate",
-    "casteCertificate",
-    "DOBCertificate",
-    "rankCard",
-    "signature",
-    "sportsCertificate",
-    "academicCertificate",
-  ];
+  const documentGroups = {
+  administration: [
+    "Bonafide Certificate",
+    "College ID Card",
+    "Fee Receipt",
+    "Transfer Certificate",
+    "Migration Certificate",
+    "No Due Certificate"
+  ],
+
+  scholarship: [
+    "Scholarship Application Form",
+    "Income Certificate",
+    "Caste Certificate",
+    "Bank Passbook",
+    "Aadhaar Card",
+    "Scholarship Sanction Letter"
+  ],
+
+  achievements: [
+    "Sports Achievement Certificate",
+    "Academic Topper Certificate",
+    "Hackathon Winner Certificate",
+    "Workshop Excellence Certificate",
+    "Technical Event Winner Certificate",
+    "National / State Level Achievement Certificate"
+  ],
+
+  participation: [
+    "Hackathon Participation Certificate",
+    "Workshop Participation Certificate",
+    "Seminar Participation Certificate",
+    "Conference Participation Certificate",
+    "Technical Fest Participation Certificate",
+    "Volunteer Participation Certificate"
+  ]
+};
 
   const handleChange = (e) => {
     setFiles((prev) => ({
@@ -27,38 +51,50 @@ export default function Documents() {
       [e.target.name]: e.target.files[0],
     }));
   };
-
+  
   const handleUpload = async () => {
-    try {
-      const form = new FormData();
+  try {
+    const formData = new FormData();
 
-      Object.entries(files).forEach(([field, file]) => {
-        if (file) {
-          form.append(field, file);
-        }
-      });
+    Object.entries(files).forEach(([key, file]) => {
+      if (file) {
+         formData.append("documents", file);
 
-      if (Object.keys(files).length === 0) {
-        setStatus("Please select at least one document.");
-        return;
-      }
+    formData.append(
+      "category",
+      activeTab
+    );
 
-      await api.post("/documents/upload", form, {
+    formData.append(
+      "documentName",
+      key
+    );
+
+  }
+
+});
+
+    const response = await api.post(
+      "/documents/upload",
+      formData,
+      {
         headers: {
           "Content-Type": "multipart/form-data",
         },
-      });
+      }
+    );
 
-      setStatus(
-        "Documents uploaded successfully. View them in DigiLocker on Dashboard."
-      );
-
-      setFiles({});
-    } catch (error) {
-      console.error(error);
+    if (response.data.success) {
+      setStatus("Documents uploaded successfully!");
+    } else {
       setStatus("Upload failed.");
     }
-  };
+  } catch (err) {
+    console.error(err);
+    setStatus("Upload failed.");
+  }
+};
+
 
   return (
     <div
@@ -95,79 +131,125 @@ export default function Documents() {
           </div>
         </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-2">
-          {documentFields.map((name) => (
-            <label
-  key={name}
-  className="
-    block
-    rounded-3xl
-    border
-    border-slate-200
-    bg-white/90
-    dark:bg-slate-800/90
-    dark:border-slate-700
-    p-5
-    shadow-md
-    transition-all
-    duration-300
-  "
->
+<div className="mt-8 flex flex-wrap justify-center gap-4">
 
-  <span className="font-semibold capitalize text-slate-800 dark:text-slate-100">
-    {name.replace(/([A-Z])/g, " $1")}
-  </span>
+  <button
+    onClick={() => setActiveTab("administration")}
+    className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 ${
+      activeTab === "administration"
+        ? "bg-blue-600 text-white shadow-lg"
+        : "bg-white text-slate-700 hover:bg-blue-100"
+    }`}
+  >
+    🏛 College Administration
+  </button>
 
-  <input
-    type="file"
-    name={name}
-    accept="application/pdf,image/jpeg,image/png"
-    onChange={handleChange}
+  <button
+    onClick={() => setActiveTab("scholarship")}
+    className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 ${
+      activeTab === "scholarship"
+        ? "bg-emerald-600 text-white shadow-lg"
+        : "bg-white text-slate-700 hover:bg-emerald-100"
+    }`}
+  >
+    🎓 Scholarship
+  </button>
+
+  <button
+    onClick={() => setActiveTab("achievements")}
+    className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 ${
+      activeTab === "achievements"
+        ? "bg-purple-600 text-white shadow-lg"
+        : "bg-white text-slate-700 hover:bg-purple-100"
+    }`}
+  >
+    🏆 Achievements
+  </button>
+
+  <button
+    onClick={() => setActiveTab("participation")}
+    className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 ${
+      activeTab === "participation"
+        ? "bg-orange-600 text-white shadow-lg"
+        : "bg-white text-slate-700 hover:bg-orange-100"
+    }`}
+  >
+    🤝 Co-Participation
+  </button>
+
+</div>
+
+<div className="mt-8 grid gap-4 md:grid-cols-2">
+          {documentGroups[activeTab].map((name) => (
+  <label
+    key={name}
     className="
-      mt-4
-      w-full
-      rounded-lg
+      block
+      rounded-3xl
       border
-      border-slate-300
-      bg-slate-50
-      px-3
-      py-2
-      text-slate-700
-      file:mr-4
-      file:rounded-lg
-      file:border-0
-      file:bg-blue-600
-      file:px-4
-      file:py-2
-      file:text-white
-      file:font-medium
-      hover:file:bg-blue-700
-
-      dark:bg-slate-900
-      dark:border-slate-600
-      dark:text-white
-      dark:file:bg-blue-500
-      dark:hover:file:bg-blue-600
+      border-slate-200
+      bg-white/90
+      p-5
+      shadow-md
+      hover:shadow-xl
+      hover:-translate-y-1
+      transition-all
+      duration-300
     "
-  />
+  >
+    <span className="font-semibold text-slate-800">
+      {name}
+    </span>
 
-</label>
-          ))}
-        </div>
+    <input
+      type="file"
+      name={name}
+      accept="application/pdf,image/jpeg,image/png"
+      onChange={handleChange}
+      className="
+        mt-4
+        w-full
+        rounded-lg
+        border
+        border-slate-300
+        bg-slate-50
+        px-3
+        py-2
+        text-slate-700
+    dark:bg-slate-900
+    dark:border-slate-600
+    dark:text-white
+        file:mr-4
+        file:rounded-lg
+        file:border-0
+        file:bg-blue-600
+        file:px-4
+        file:py-2
+        file:text-white
+        hover:file:bg-blue-700
+      "
+    />
+  </label>
+))}
 
-        <div className="mt-6">
-          <button
-            onClick={handleUpload}
-            className="rounded-3xl bg-blue-600 px-6 py-3 text-white"
-          >
-            Upload Files
-          </button>
-        </div>
+</div> {/* <-- Close the grid here */}
 
+<div className="mt-8 text-center">
+  <button
+    onClick={handleUpload}
+    className="rounded-3xl bg-blue-600 px-8 py-3 text-white font-semibold hover:bg-blue-700 transition"
+>
+  {activeTab === "administration" && "Upload College Documents"}
+  {activeTab === "scholarship" && "Upload Scholarship Documents"}
+  {activeTab === "achievements" && "Upload Achievement Documents"}
+  {activeTab === "participation" && "Upload Participation Documents"}
+</button>
+</div>
         {status && (
           <div className="mt-4 rounded-xl border border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700 p-4 text-green-700 dark:text-green-300">
             {status}
           </div>
+          
         )}
       </section>
     </div>

@@ -9,7 +9,7 @@ import {
 export default function ApplicationsPage() {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [filters, setFilters] = useState({ search: '', branch: '', status: '', category: '' });
+  const [filters, setFilters] = useState({ search: '', branch: '', batch: ''});
   
   // Modals state
   const [viewingApp, setViewingApp] = useState(null);
@@ -25,7 +25,7 @@ export default function ApplicationsPage() {
   const [submitting, setSubmitting] = useState(false);
   function getInitialFormState() {
     return {
-      fullName: '', email: '', mobile: '', password: '',
+      rollNumber:'',fullName: '', email: '', mobile: '', password: '',
       dob: '', gender: 'Male', bloodGroup: '', nationality: 'Indian', religion: '', category: 'General', address: '',
       guardianName: '', guardianOccupation: '', guardianIncome: '', emergencyContact: '',
       
@@ -71,6 +71,8 @@ export default function ApplicationsPage() {
       
       // Map student data to form
       setForm({
+        rollNumber:
+        student.rollNumber || '',
         id: student.id,
         fullName: student.fullName || '',
         email: student.email || '',
@@ -269,33 +271,25 @@ shadow-md">
             <option value="MET">Meturagy</option>
             <option value="Civil">Civil</option>
           </select>
-          <select
-            value={filters.status}
-            onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-            className="rounded-3xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 outline-none shadow-sm transition focus:border-brand-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-          >
-            <option value="">All Status</option>
-            <option value="draft">Draft</option>
-            <option value="submitted">Submitted</option>
-            <option value="under-review">Under Review</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-          </select>
-          <select
-            value={filters.category}
-            onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-            className="rounded-3xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 outline-none shadow-sm transition focus:border-brand-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-          >
-            <option value="">All Categories</option>
-            <option value="General">General</option>
-            <option value="OBC">OBC</option>
-            <option value="SC">SC</option>
-            <option value="ST">ST</option>
-          </select>
+          {/* Batch */}
+  <select
+    value={filters.batch || ""}
+    onChange={(e) =>
+      setFilters({ ...filters, batch: e.target.value })
+    }
+    className="px-4 py-2 rounded-2xl border border-slate-300 bg-white"
+  >
+    <option value="">All Batches</option>
+    <option value="2022">2022</option>
+    <option value="2023">2023</option>
+    <option value="2024">2024</option>
+    <option value="2025">2025</option>
+    <option value="2026">2026</option>
+  </select>
         </div>
         <div className="mt-5 flex items-center justify-end gap-3 border-t border-slate-100 pt-4 dark:border-slate-800">
           <button 
-            onClick={() => setFilters({ search: '', branch: '', status: '', category: '' })} 
+            onClick={() => setFilters({ search: '', branch: '', batch: '' })} 
             className="rounded-3xl border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
           >
             Clear Filters
@@ -342,6 +336,7 @@ text-slate-800
 uppercase
 tracking-wide">
                 <tr>
+                  <th className="px-6 py-4">Roll Number</th>
                   <th className="px-6 py-4 font-semibold">Student</th>
                   <th className="px-6 py-4 font-semibold">Course & Branch</th>
                   <th className="px-6 py-4 font-semibold">Status</th>
@@ -354,6 +349,32 @@ tracking-wide">
                 {applications.map((student) => (
                   <tr key={student.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-colors">
                     <td className="px-6 py-4">
+                      <td className="px-6 py-4">
+
+<button
+
+onClick={()=>
+
+handleOpenView(student.id)
+
+}
+
+className="
+
+text-blue-600
+font-semibold
+
+hover:underline
+
+"
+
+>
+
+{student.rollNumber || '--'}
+
+</button>
+
+</td>
                       <div className="font-semibold text-slate-900 dark:text-slate-100">{student.fullName}</div>
                       <div className="text-xs text-slate-500">{student.email}</div>
                       <div className="text-xs text-slate-400">{student.mobile}</div>
@@ -462,6 +483,24 @@ tracking-wide">
                   <User size={16} /> Personal Information
                 </h4>
                 <div className="grid grid-cols-2 gap-4 rounded-2xl border border-slate-150 p-4 dark:border-slate-800 text-xs">
+                  <div>
+
+<p className="text-slate-400">
+
+Roll Number
+
+</p>
+
+<p
+className="
+font-semibold
+text-slate-800">
+
+{viewingApp.rollNumber || '--'}
+
+</p>
+
+</div>
                   <div>
                     <p className="text-slate-400">Full Name</p>
                     <p className="font-semibold text-slate-800 dark:text-slate-200">{viewingApp.fullName}</p>
@@ -662,6 +701,51 @@ tracking-wide">
               {/* Tab 1: Personal Info */}
               {activeTab === 'personal' && (
                 <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                  <label>
+
+<span
+className="
+text-xs
+font-bold
+uppercase
+tracking-wider
+text-slate-500"
+>
+
+Roll Number
+
+</span>
+
+<input
+
+value={form.rollNumber}
+
+onChange={(e)=>
+
+setForm({
+
+...form,
+
+rollNumber:e.target.value
+
+})
+
+}
+
+className="
+mt-2
+w-full
+rounded-2xl
+border
+border-slate-200
+px-4
+py-3"
+
+placeholder="2022CSE001"
+
+/>
+
+</label>
                   <label className="block">
                     <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Full Name *</span>
                     <input 

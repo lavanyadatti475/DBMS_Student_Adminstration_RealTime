@@ -116,6 +116,10 @@ export default function StudentProfile() {
               value: student?.fullName
             },
             {
+label:"Roll Number",
+value:student?.rollNumber
+},
+            {
               label: "Email",
               value: student?.email
             },

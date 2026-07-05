@@ -199,7 +199,7 @@ router.get('/applications/:id', requireAuth, requireRole('admin'), async (req, r
 router.post('/applications', requireAuth, requireRole('admin'), async (req, res, next) => {
   try {
     const {
-      fullName, email, mobile, password = 'Student@1234',
+      fullName, email,rollNumber, mobile, password = 'Student@1234',
       dob, gender, bloodGroup, nationality, religion, category, address,
       guardianName, guardianOccupation, guardianIncome, emergencyContact,
       
@@ -230,6 +230,7 @@ router.post('/applications', requireAuth, requireRole('admin'), async (req, res,
         data: {
           fullName,
           email,
+          rollNumber,
           mobile,
           passwordHash: hashed,
           role: 'student',
@@ -306,7 +307,7 @@ router.put('/applications/:id', requireAuth, requireRole('admin'), async (req, r
     const studentId = Number(id);
 
     const {
-      fullName, email, mobile, password,
+      fullName, email,rollNumber,mobile, password,
       dob, gender, bloodGroup, nationality, religion, category, address,
       guardianName, guardianOccupation, guardianIncome, emergencyContact,
       
@@ -344,6 +345,7 @@ router.put('/applications/:id', requireAuth, requireRole('admin'), async (req, r
         data: {
           fullName,
           email,
+          rollNumber,
           mobile,
           passwordHash: updatedPasswordHash,
           dob,
@@ -466,7 +468,13 @@ router.get(
      mobile:{
       contains:q
      }
-    }
+    },
+    {
+ rollNumber:{
+  contains:q,
+  mode:"insensitive"
+ }
+}
    ]
   }
 
@@ -510,6 +518,62 @@ router.get('/activity', requireAuth, requireRole('admin'), async (req, res, next
   } catch (error) {
     next(error);
   }
+});
+
+router.get(
+
+'/student/:rollNumber',
+
+requireAuth,
+
+requireRole('admin'),
+
+async(req,res)=>{
+
+const student =
+await prisma.student.findUnique({
+
+where:{
+
+rollNumber:
+req.params.rollNumber
+
+},
+
+include:{
+
+academicDetails:true,
+
+admissionForm:true,
+
+uploadedDocuments:true,
+
+admissionStatus:true
+
+}
+
+})
+
+if(!student){
+
+return res.status(404).json({
+
+success:false,
+
+error:'Student not found'
+
+})
+
+}
+
+res.json({
+
+success:true,
+
+student
+
+})
+
 });
 
 module.exports = router;
