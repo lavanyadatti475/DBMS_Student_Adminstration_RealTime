@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import api from '../../api/api';
 import { 
@@ -347,87 +346,71 @@ tracking-wide">
               </thead>
               <tbody className="divide-y divide-slate-200 bg-white/50 dark:divide-slate-700 dark:bg-slate-950/50">
                 {applications.map((student) => (
-                  <tr key={student.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-colors">
-                    <td className="px-6 py-4">
-                      <td className="px-6 py-4">
+                  <tr key={student.id}>
 
-<button
+    {/* Roll Number */}
+    <td className="px-6 py-4">
+        <button
+            onClick={() => handleOpenView(student.id)}
+            className="text-blue-600 font-semibold hover:underline"
+        >
+            {student.rollNumber || "--"}
+        </button>
+    </td>
 
-onClick={()=>
+    {/* Student */}
+    <td className="px-6 py-4">
+        <div className="font-semibold">
+            {student.fullName}
+        </div>
 
-handleOpenView(student.id)
+        <div className="text-xs text-gray-500">
+            {student.email}
+        </div>
 
-}
+        <div className="text-xs text-gray-500">
+            {student.mobile}
+        </div>
+    </td>
 
-className="
+    {/* Course */}
+    <td className="px-6 py-4">
+        {student.admissionForm ? (
+            <>
+                <div>{student.admissionForm.course}</div>
 
-text-blue-600
-font-semibold
+                <div className="text-xs text-gray-500">
+                    {student.admissionForm.branch}
+                </div>
+            </>
+        ) : (
+            "Not Started"
+        )}
+    </td>
 
-hover:underline
+    {/* Status */}
+    <td className="px-6 py-4">
+        {getStatusBadge(student.admissionStatus?.applicationStatus)}
+    </td>
 
-"
+    {/* Category */}
+    <td className="px-6 py-4">
+        {student.category}
+    </td>
 
->
+    {/* Submitted */}
+    <td className="px-6 py-4">
+        {student.admissionForm?.submittedAt
+            ? new Date(student.admissionForm.submittedAt).toLocaleDateString()
+            : "--"}
+    </td>
 
-{student.rollNumber || '--'}
+    {/* Actions */}
+    <td className="px-6 py-4">
+        ...
+    </td>
 
-</button>
-
-</td>
-                      <div className="font-semibold text-slate-900 dark:text-slate-100">{student.fullName}</div>
-                      <div className="text-xs text-slate-500">{student.email}</div>
-                      <div className="text-xs text-slate-400">{student.mobile}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      {student.admissionForm ? (
-                        <>
-                          <div className="font-medium text-slate-800 dark:text-slate-200">{student.admissionForm.course}</div>
-                          <div className="text-xs text-slate-500">{student.admissionForm.branch}</div>
-                        </>
-                      ) : (
-                        <span className="text-xs text-slate-400 italic">Not started</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      {getStatusBadge(student.admissionStatus?.applicationStatus)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                        {student.category || '—'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-xs text-slate-500">
-                      {student.admissionForm?.submittedAt 
-                        ? new Date(student.admissionForm.submittedAt).toLocaleDateString()
-                        : '—'}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button 
-                          onClick={() => handleOpenView(student.id)}
-                          title="View Details"
-                          className="rounded-lg p-2 text-slate-600 transition hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
-                        >
-                          <Eye size={16} />
-                        </button>
-                        <button 
-                          onClick={() => handleOpenEdit(student.id)}
-                          title="Edit"
-                          className="rounded-lg p-2 text-blue-600 transition hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/30"
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        <button 
-                          onClick={() => setDeletingAppId(student.id)}
-                          title="Delete"
-                          className="rounded-lg p-2 text-rose-600 transition hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/30"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+</tr>
                 ))}
               </tbody>
             </table>
