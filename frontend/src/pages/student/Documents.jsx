@@ -1,6 +1,86 @@
-import { useState } from "react";
-import api from "../../api/api";
-import { UploadCloud } from "lucide-react";
+import { useEffect, useMemo, useState } from 'react';
+import api from '../../api/api';
+import { UploadCloud, Eye, Download, Trash2, RefreshCw, FileText, FolderOpen } from 'lucide-react';
+
+const CATEGORY_CONFIG = {
+  administration: {
+    title: 'Administration Documents',
+    description: 'College admission and record documents.',
+    fields: [
+      { name: 'photograph', label: 'Passport Size Photograph' },
+      { name: 'aadhaar', label: 'Aadhaar Card' },
+      { name: 'sscMemo', label: 'SSC / 10th Marks Memo' },
+      { name: 'intermediateMemo', label: 'Intermediate / 12th Marks Memo' },
+      { name: 'transferCertificate', label: 'Transfer Certificate' },
+      { name: 'bonafideCertificate', label: 'Bonafide Certificate' },
+      { name: 'studentIdCard', label: 'Student ID Card' },
+      { name: 'addressProof', label: 'Address Proof' },
+      { name: 'parentGuardianIdProof', label: 'Parent / Guardian ID Proof' },
+      { name: 'incomeCertificate', label: 'Income Certificate' },
+      { name: 'casteCertificate', label: 'Caste Certificate' },
+      { name: 'residenceCertificate', label: 'Residence Certificate' },
+      { name: 'migrationCertificate', label: 'Migration Certificate' },
+      { name: 'admissionLetter', label: 'Admission Letter' },
+      { name: 'feeReceipt', label: 'Fee Receipt' },
+      { name: 'semesterRegistrationDocuments', label: 'Semester Registration Documents' }
+    ]
+  },
+  scholarship: {
+    title: 'Scholarship Documents',
+    description: 'Documents commonly required for scholarship applications.',
+    fields: [
+      { name: 'incomeCertificate', label: 'Income Certificate' },
+      { name: 'casteCertificate', label: 'Caste Certificate' },
+      { name: 'bonafideCertificate', label: 'Bonafide Certificate' },
+      { name: 'aadhaar', label: 'Aadhaar Card' },
+      { name: 'bankPassbook', label: 'Bank Passbook' },
+      { name: 'studentBankAccountDetails', label: 'Student Bank Account Details' },
+      { name: 'scholarshipApplicationForm', label: 'Scholarship Application Form' },
+      { name: 'feeReceipt', label: 'Fee Receipt' },
+      { name: 'academicMarksMemo', label: 'Academic Marks Memo' },
+      { name: 'previousScholarshipApprovalLetter', label: 'Previous Scholarship Approval Letter' },
+      { name: 'passportSizePhoto', label: 'Passport Size Photo' },
+      { name: 'parentIncomeProof', label: 'Parent Income Proof' }
+    ]
+  },
+  achievement: {
+    title: 'Achievement Certificates',
+    description: 'Academic, technical, cultural, and sports achievement certificates.',
+    fields: [
+      { name: 'academicCertificate', label: 'Academic Certificate' },
+      { name: 'sportsCertificate', label: 'Sports Certificate' },
+      { name: 'technicalCertificate', label: 'Technical Certificate' }
+    ]
+  },
+  participation: {
+    title: 'Participation Certificates',
+    description: 'Participation certificates and event records.',
+    fields: [
+      { name: 'participationCertificate', label: 'Participation Certificate' }
+    ]
+  }
+};
+
+const CATEGORY_ORDER = ['administration', 'scholarship', 'achievement', 'participation'];
+
+function getFileUrl(filePath) {
+  if (!filePath) return '';
+  if (filePath.startsWith('http://') || filePath.startsWith('https://')) return filePath;
+  return `http://localhost:5000${filePath}`;
+}
+
+function getCategoryForDoc(doc) {
+  if (doc.documentCategory && CATEGORY_CONFIG[doc.documentCategory]) {
+    return doc.documentCategory;
+  }
+
+  const field = doc.documentType || '';
+  if (CATEGORY_CONFIG.administration.fields.some((item) => item.name === field)) return 'administration';
+  if (CATEGORY_CONFIG.scholarship.fields.some((item) => item.name === field)) return 'scholarship';
+  if (CATEGORY_CONFIG.achievement.fields.some((item) => item.name === field)) return 'achievement';
+  if (CATEGORY_CONFIG.participation.fields.some((item) => item.name === field)) return 'participation';
+  return 'administration';
+}
 
 export default function Documents() {
   const [files, setFiles] = useState({});
@@ -48,7 +128,7 @@ export default function Documents() {
   const handleChange = (e) => {
     setFiles((prev) => ({
       ...prev,
-      [e.target.name]: e.target.files[0],
+      [name]: files?.[0] || null
     }));
   };
   
@@ -96,38 +176,23 @@ export default function Documents() {
 };
 
 
+  const activeDocs = documentsByCategory[activeCategory] || [];
+
   return (
-    <div
-    className="min-h-screen p-6 space-y-6 animate-fadeIn"
-    style={{
-      backgroundImage: `
-        linear-gradient(
-          rgba(15, 23, 42, 0.55),
-          rgba(15, 23, 42, 0.55)
-        ),
-        url('https://jntugv.edu.in/static/media/JNTU_PIC.ae61eebb7dc963f0dd30.png')
-      `,
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-      backgroundAttachment: "fixed",
-      backgroundRepeat: "no-repeat"
-    }}
-  >
-   
-      <section className="card-glass p-8 rounded-3xl border border-white/30 shadow-2xl animate-slideUp">
-
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div className="min-h-screen space-y-6 p-6 animate-fadeIn bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800">
+      <section className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Document Vault</h2>
-
-            <p className="mt-2 text-slate-600 dark:text-slate-300 ">
-              Upload your documents securely for admin verification.
-            </p>
+            <div className="inline-flex items-center gap-2 rounded-full bg-sky-500/15 px-4 py-2 text-sky-200">
+              <FolderOpen size={16} />
+              Uploaded Documents
+            </div>
+            <h1 className="mt-4 text-3xl font-bold text-white">Document Center</h1>
+            <p className="mt-2 max-w-2xl text-slate-300">Manage administration, scholarship, achievement, and participation documents in separate sections.</p>
           </div>
 
-          <div className="inline-flex items-center gap-2 rounded-3xl bg-blue-600 px-4 py-3 text-white">
-            <UploadCloud size={18} />
-            <span>Supported: PDF, JPG, PNG</span>
+          <div className="rounded-2xl border border-sky-400/20 bg-sky-500/10 px-4 py-3 text-sky-100">
+            Supported: PDF, JPG, PNG, DOC, DOCX
           </div>
         </div>
 

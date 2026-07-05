@@ -23,6 +23,53 @@ guardianIncome: z.string().optional(),
 emergencyContact: z.string().optional()
 });
 
+const documentCategoryAliases = {
+  administration: [
+    'photograph',
+    'aadhaar',
+    'sscMemo',
+    'intermediateMemo',
+    'transferCertificate',
+    'bonafideCertificate',
+    'passportSizePhotograph',
+    'studentIdCard',
+    'addressProof',
+    'parentGuardianIdProof',
+    'incomeCertificate',
+    'casteCertificate',
+    'residenceCertificate',
+    'migrationCertificate',
+    'admissionLetter',
+    'feeReceipt',
+    'semesterRegistrationDocuments'
+  ],
+  scholarship: [
+    'incomeCertificate',
+    'casteCertificate',
+    'bonafideCertificate',
+    'aadhaar',
+    'bankPassbook',
+    'studentBankAccountDetails',
+    'scholarshipApplicationForm',
+    'feeReceipt',
+    'academicMarksMemo',
+    'previousScholarshipApprovalLetter',
+    'passportSizePhoto',
+    'parentIncomeProof'
+  ],
+  achievement: ['academicCertificate', 'sportsCertificate', 'technicalCertificate'],
+  participation: ['participationCertificate']
+};
+
+function buildDocumentCategories(documents = []) {
+  return {
+    administration: documents.filter((doc) => documentCategoryAliases.administration.includes(doc.documentType) || doc.documentCategory === 'administration'),
+    scholarship: documents.filter((doc) => documentCategoryAliases.scholarship.includes(doc.documentType) || doc.documentCategory === 'scholarship'),
+    achievement: documents.filter((doc) => documentCategoryAliases.achievement.includes(doc.documentType) || doc.documentCategory === 'achievement'),
+    participation: documents.filter((doc) => documentCategoryAliases.participation.includes(doc.documentType) || doc.documentCategory === 'participation')
+  };
+}
+
 /* GET STUDENT PROFILE */
 router.get('/me', requireAuth, async (req, res, next) => {
 try {
@@ -35,7 +82,9 @@ academicDetails: true,
 admissionForm: true,
 uploadedDocuments: true,
 notifications: true,
-admissionStatus: true
+    admissionStatus: true,
+    batch: true,
+    supervisor: true
 }
 });
 
@@ -71,7 +120,10 @@ try {
       where: {
         id: req.user.id
       },
-      data: req.body
+      data: {
+        ...req.body,
+        rollNumber: undefined
+      }
     });
 
   await prisma.activityLog.create({
@@ -106,7 +158,9 @@ const student = await prisma.student.findUnique({
     admissionForm: true,
     uploadedDocuments: true,
     notifications: true,
-    admissionStatus: true
+    admissionStatus: true,
+    batch: true,
+    supervisor: true
   }
 });
 
@@ -121,6 +175,8 @@ const profilePhoto =
   student.uploadedDocuments.find(
     (doc) => doc.documentType === 'photograph'
   );
+
+const categorizedDocuments = buildDocumentCategories(student.uploadedDocuments);
 
 const completion = Math.min(
   100,
@@ -145,6 +201,12 @@ res.json({
     fullName: student.fullName,
     rollNumber: student.rollNumber,
     email: student.email,
+    mobile: student.mobile,
+    department: student.supervisor?.department || student.admissionForm?.branch || 'N/A',
+    year: student.batch?.year || 'N/A',
+    section: student.batch?.section || 'N/A',
+    batch: student.batch?.name || 'N/A',
+    supervisor: student.supervisor?.fullName || 'N/A',
 
     course:
       student.admissionForm?.course || 'N/A',
@@ -164,6 +226,8 @@ res.json({
 
     uploadedDocuments:
       student.uploadedDocuments,
+
+    documentCategories: categorizedDocuments,
 
     verificationProgress:
       student.admissionStatus?.documentStatus ||

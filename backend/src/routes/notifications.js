@@ -16,12 +16,12 @@ createdAt: "desc"
 }
 });
 
-```
+
 res.json({
   success: true,
   notifications
 });
-```
+
 
 } catch (error) {
 next(error);

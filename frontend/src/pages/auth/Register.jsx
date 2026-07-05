@@ -93,6 +93,15 @@ p-6
           </label>
 
           <label className="block">
+            <span className="text-slate-700 dark:text-slate-200">Roll Number</span>
+            <div className={`mt-2 flex items-center gap-3 rounded-3xl border ${validationErrors.some(e => e.path.includes('rollNumber')) ? 'border-rose-500' : 'border-slate-200'} bg-white px-4 py-3 shadow-sm dark:border-slate-700 dark:bg-slate-900`}>
+              <UserPlus size={18} className="text-slate-400" />
+              <input value={form.rollNumber} onChange={(e) => setForm({ ...form, rollNumber: e.target.value })} required className="w-full bg-transparent outline-none text-slate-900 dark:text-slate-100" placeholder="RN260001" />
+            </div>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">This is the primary student identifier and must be unique.</p>
+          </label>
+
+          <label className="block">
             <span className="text-slate-700 dark:text-slate-200">Email</span>
             <div className={`mt-2 flex items-center gap-3 rounded-3xl border ${validationErrors.some(e => e.path.includes('email')) ? 'border-rose-500' : 'border-slate-200'} bg-white px-4 py-3 shadow-sm dark:border-slate-700 dark:bg-slate-900`}>
               <Mail size={18} className="text-slate-400" />

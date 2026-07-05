@@ -7,6 +7,7 @@ export default function StudentQRCode({ student }) {
     <QRCodeCanvas
       value={JSON.stringify({
         id: student.id,
+        rollNumber: student.rollNumber,
         name: student.fullName,
         email: student.email
       })}
